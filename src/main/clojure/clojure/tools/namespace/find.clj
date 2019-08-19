@@ -84,7 +84,8 @@
   ([dir] (find-ns-decls-in-dir dir nil))
   ([dir platform]
    (keep #(ignore-reader-exception
-           (file/read-file-ns-decl % (:read-opts platform)))
+           (when-let [ns-decl (file/read-file-ns-decl % (:read-opts platform))]
+             (with-meta ns-decl {:file %})))
          (find-sources-in-dir dir platform))))
 
 (defn find-namespaces-in-dir
@@ -153,7 +154,8 @@
   ([jarfile]
    (find-ns-decls-in-jarfile jarfile nil))
   ([^JarFile jarfile platform]
-   (keep #(read-ns-decl-from-jarfile-entry jarfile % platform)
+   (keep #(when-let [ns-decl (read-ns-decl-from-jarfile-entry jarfile % platform)]
+            (with-meta ns-decl {:jar-file jarfile :file %}))
          (sources-in-jar jarfile platform))))
 
 (defn find-namespaces-in-jarfile
